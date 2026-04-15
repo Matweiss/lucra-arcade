@@ -11,12 +11,22 @@ export class ScoreSystem {
       finish: 0,
     };
     this._driftAccum = 0;
+    this._events = [];
+    this._startTs = Date.now();
+  }
+
+  _record(type, delta, meta = {}) {
+    this._events.push({ type, ts: Date.now() - this._startTs, delta, ...meta });
   }
 
   addDistance(pixels, rate) {
     const pts = Math.floor(pixels * rate);
     this.score += pts;
     this._breakdown.distance += pts;
+    // Distance is high-frequency; batch into the event log only when significant
+    if (pts > 0 && this._events.length % 10 === 0) {
+      this._record('distance', pts, { pixels: Math.floor(pixels) });
+    }
   }
 
   addGate(streak) {
@@ -25,6 +35,7 @@ export class ScoreSystem {
     const pts = base + bonus;
     this.score += pts;
     this._breakdown.gates += pts;
+    this._record('gate', pts, { streak });
     return pts;
   }
 
@@ -32,6 +43,7 @@ export class ScoreSystem {
     const pts = this._config.nearMiss;
     this.score += pts;
     this._breakdown.nearMisses += pts;
+    this._record('near_miss', pts);
     return pts;
   }
 
@@ -42,6 +54,7 @@ export class ScoreSystem {
       this.score += pts;
       this._breakdown.drift += pts;
       this._driftAccum -= 1.0;
+      this._record('drift', pts);
       return pts;
     }
     return 0;
@@ -51,6 +64,7 @@ export class ScoreSystem {
     const pts = this._config.boostPad;
     this.score += pts;
     this._breakdown.boostPads += pts;
+    this._record('boost_pad', pts);
     return pts;
   }
 
@@ -58,10 +72,29 @@ export class ScoreSystem {
     const pts = this._config.finishBonus;
     this.score += pts;
     this._breakdown.finish += pts;
+    this._record('finish', pts);
     return pts;
   }
 
   getBreakdown() {
     return { ...this._breakdown };
+  }
+
+  /**
+   * Returns the structured event log for anti-cheat score submission.
+   * The server replays events to verify the final score is plausible.
+   *
+   * Shape: { sessionId, startTs, duration, events: [{type, ts, delta, ...meta}], finalScore, breakdown }
+   */
+  getEventLog(sessionId) {
+    const duration = Date.now() - this._startTs;
+    return {
+      sessionId: sessionId || null,
+      startTs: this._startTs,
+      duration,
+      events: [...this._events],
+      finalScore: this.score,
+      breakdown: this.getBreakdown(),
+    };
   }
 }

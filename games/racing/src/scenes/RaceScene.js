@@ -189,16 +189,31 @@ export class RaceScene extends Phaser.Scene {
     this._touchRight = false;
     this._touchBoost = false;
 
-    // Left third = steer left, right third = steer right, center = boost
+    // Steer zone: left half = left, right half = right
+    // Boost: dedicated button in bottom-center (avoids accidental triggers in tournament play)
+    const boostBtn = this.add.rectangle(width / 2, height - 48, 100, 44, 0xff6b00, 0.25)
+      .setStrokeStyle(2, 0xff6b00)
+      .setDepth(20)
+      .setInteractive();
+
+    this.add.text(width / 2, height - 48, '⚡ BOOST', {
+      fontSize: '13px', fontFamily: 'monospace', fontStyle: 'bold', color: '#ff6b00',
+    }).setOrigin(0.5).setDepth(21);
+
+    boostBtn.on('pointerdown', () => { this._touchBoost = true; });
+    boostBtn.on('pointerup', () => { this._touchBoost = false; });
+    boostBtn.on('pointerout', () => { this._touchBoost = false; });
+
+    // Steer: anywhere outside the boost button
     this.input.on('pointerdown', (p) => {
-      if (p.x < width * 0.33) this._touchLeft = true;
-      else if (p.x > width * 0.66) this._touchRight = true;
-      else this._touchBoost = true;
+      if (p.y > height - 70) return; // ignore boost area
+      if (p.x < width / 2) this._touchLeft = true;
+      else this._touchRight = true;
     });
-    this.input.on('pointerup', () => {
+    this.input.on('pointerup', (p) => {
+      if (p.y > height - 70) return;
       this._touchLeft = false;
       this._touchRight = false;
-      this._touchBoost = false;
     });
   }
 

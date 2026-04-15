@@ -1,5 +1,5 @@
 # Lucra Arcade — Game Template Build Plan
-**Version:** 1.0 | **Status:** Pre-build review  
+**Version:** 1.1 | **Status:** M1 complete — M2 next  
 **Starting game:** Kart Racing | **Next:** Golf, Pickleball
 
 ---
@@ -44,6 +44,11 @@ The contest system mirrors Betr Arcade's proven model:
 ```
 lucra-arcade/
 ├── PLAN.md                          ← this file
+├── shared/                          ← reused across all 3 games (extracted at M1, per Vandalay)
+│   ├── contest/
+│   │   └── ContestClient.js         ← event-log score submission, session ID generation
+│   └── ui/
+│       └── BrandOverlay.js          ← brand logo, sponsor tag, legal footer rendering
 ├── games/
 │   └── racing/
 │       ├── index.html               ← game entry point
@@ -57,17 +62,13 @@ lucra-arcade/
 │       │   ├── systems/
 │       │   │   ├── PlayerController.js   ← movement, crash, boost state
 │       │   │   ├── TrackSystem.js        ← scrolling track, obstacle/gate/pad spawning
-│       │   │   ├── ScoreSystem.js        ← all scoring logic + breakdown
-│       │   │   └── BrandingSystem.js     ← applies brandConfig to all visuals
+│       │   │   └── ScoreSystem.js        ← all scoring events + getEventLog() anti-cheat
 │       │   └── config/
 │       │       ├── gameConfig.js    ← speeds, timings, scoring weights (tunable)
-│       │       └── brandConfig.js   ← all brand-facing fields (DEFAULT + override pattern)
+│       │       └── brandConfig.js   ← all brand-facing fields (BRAND_SCHEMA_VERSION, validateBrandConfig)
 │       └── assets/
 │           └── brands/
 │               └── default/         ← placeholder assets
-└── shared/                          ← reused across all 3 games (phase 2+)
-    ├── contest/                     ← mode wrappers (free_play, tournament, skill_play)
-    └── ui/                          ← shared result screen, leaderboard components
 ```
 
 ---
@@ -117,8 +118,18 @@ Every field a brand sponsor needs to provide. This is the intake form for sales.
     entryFee: 0,
     prizePool: 0,
     maxEntries: null,
-    submissionEndpoint: null,       // POST endpoint for score submission
+    submissionEndpoint: null,       // POST endpoint — receives event-log payload (not raw score)
+    sessionSecret: null,            // optional HMAC seed for payload signing
   },
+
+  // Analytics stubs (wired by brand at deploy time)
+  analytics: { ga4MeasurementId: null, gtmContainerId: null, mixpanelToken: null },
+
+  // Legal stubs (required for real-money modes)
+  legal: { termsUrl: null, privacyUrl: null, ageGate: false, disclaimerText: null },
+
+  // Deployment
+  deployment: { embedMode: 'iframe', allowedOrigins: ['*'] },
 }
 ```
 
@@ -165,15 +176,18 @@ To create a branded version: `{ ...DEFAULT_BRAND, colors: { ...DEFAULT_BRAND.col
 
 ## 6. Build Milestones
 
-### Milestone 1 — Gray-box playable ✅ (in progress)
+### Milestone 1 — Gray-box playable ✅ Complete
 - [x] Project scaffolded
-- [x] `gameConfig.js` + `brandConfig.js` defined
+- [x] `gameConfig.js` + `brandConfig.js` defined (BRAND_SCHEMA_VERSION, validateBrandConfig, analytics/legal/deployment stubs)
 - [x] All 4 scenes created (Boot, Menu, Race, Result)
 - [x] PlayerController (movement, crash, boost)
-- [ ] TrackSystem (scrolling, obstacle/gate/pad spawning)
-- [ ] ScoreSystem (all event types + breakdown)
-- [ ] `main.js` + `index.html` wiring everything together
-- [ ] **Playable in browser with no assets**
+- [x] TrackSystem (scrolling, obstacle/gate/pad spawning, near-miss detection)
+- [x] ScoreSystem (all event types, breakdown, `getEventLog()` for anti-cheat submission)
+- [x] Touch controls: left/right steer zones + dedicated ⚡ BOOST button
+- [x] `shared/contest/ContestClient.js` — event-log submission wrapper
+- [x] `shared/ui/BrandOverlay.js` — brand logo, sponsor tag, legal footer
+- [x] `main.js` + `index.html` wiring all scenes
+- [x] **Playable in browser with no assets**
 
 ### Milestone 2 — Feel tuning
 - [ ] Adjust speeds, spawn rates, scoring weights in `gameConfig.js`
@@ -188,8 +202,9 @@ To create a branded version: `{ ...DEFAULT_BRAND, colors: { ...DEFAULT_BRAND.col
 
 ### Milestone 4 — Contest wrappers
 - [ ] Mode selector on menu (free play / tournament / skill play / practice)
-- [ ] Score submission stub (POST to endpoint)
-- [ ] Result screen shows mode-specific messaging
+- [ ] Wire `ContestClient.submit(scoreSystem.getEventLog(sessionId))` in ResultScene
+- [ ] Result screen shows mode-specific messaging (rank, prize text)
+- [ ] Server-side event-log replay for anti-cheat verification (backend work)
 
 ### Milestone 5 — Golf template (reuse 80% of racing)
 - [ ] Swap `RaceScene` for `GolfScene` — swing timing mechanic
@@ -231,20 +246,20 @@ To create a branded version: `{ ...DEFAULT_BRAND, colors: { ...DEFAULT_BRAND.col
 
 ## 9. Open Questions for Review
 
-1. **Phaser via CDN vs. npm + Vite?** CDN is faster to prototype; Vite gives better long-term DX. Recommend: CDN for M1, switch to Vite at M3.
-2. **Score submission:** Does Lucra have a backend endpoint ready, or should the stub POST to a local mock server?
-3. **Touch zones:** Left/right/boost split at 33%/33%/33%. Should boost be a button instead?
+1. **Phaser via CDN vs. npm + Vite?** CDN is faster to prototype; Vite gives better long-term DX. Recommend: CDN for M1 (done), switch to Vite at M3.
+2. **Score submission backend:** Event-log payload format defined. Does Lucra have an endpoint ready, or mock server for M4?
+3. **Touch zones:** Resolved — left/right steer + dedicated ⚡ BOOST button at bottom center (per Vandalay review).
 4. **60s duration:** Right for skill play? Betr uses variable lengths. Worth A/B testing at M2.
 5. **Gate design:** Fixed 3-lane gates vs. random single-lane gaps? Random is harder, more skill-differentiating.
 
 ---
 
-## 10. Immediate Next Step
+## 10. Immediate Next Step — Milestone 2: Feel Tuning
 
-Complete Milestone 1:
-1. `TrackSystem.js` — scrolling lanes, spawner logic
-2. `ScoreSystem.js` — all events, breakdown getter
-3. `main.js` + `index.html` — wire Phaser + all scenes
-4. Open in browser — car moves, obstacles appear, score counts, result screen shows
+M1 is complete and playable. Next:
+1. Play-test the gray-box build — adjust `gameConfig.js` speeds, spawn rates, scoring weights
+2. Add screen shake on crash, particle flash on near miss
+3. Validate mobile touch feel — boost button ergonomics
+4. Score curve: confirm 60s run produces meaningful spread for tournaments
 
-**No art. No sound. Just playable.**
+**Goal: feels fun before any art goes in.**

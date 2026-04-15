@@ -1,7 +1,14 @@
 // brandConfig.js — Everything a brand sponsor needs to customize.
 // Swap this object to reskin the entire game. No gameplay code changes required.
+//
+// Sales intake: collect all non-null fields from the sponsor before generating a build.
+// schemaVersion must be checked at runtime — reject configs < current version.
+
+export const BRAND_SCHEMA_VERSION = 1;
 
 export const DEFAULT_BRAND = {
+  schemaVersion: BRAND_SCHEMA_VERSION,
+
   // Identity
   name: 'Lucra Turbo Sprint',
   sponsor: 'Lucra',
@@ -38,14 +45,49 @@ export const DEFAULT_BRAND = {
   },
 
   // Contest mode (hook for Lucra backend)
+  // Score submission uses event-log format — see ScoreSystem.getEventLog()
   contest: {
     mode: 'free_play',       // 'free_play' | 'tournament' | 'skill_play' | 'practice'
     entryFee: 0,
     prizePool: 0,
     maxEntries: null,
-    submissionEndpoint: null,
+    submissionEndpoint: null, // POST receives: { sessionId, playerId, eventLog, finalScore, duration }
+    sessionSecret: null,      // set server-side; used to sign event log submissions
+  },
+
+  // Analytics — brand tracking IDs (all optional)
+  analytics: {
+    ga4MeasurementId: null,   // Google Analytics 4
+    gtmContainerId: null,     // Google Tag Manager
+    mixpanelToken: null,
+    customEndpoint: null,     // POST { event, properties } for brand's own analytics
+    sessionIdPrefix: 'lucra', // prefixed to all session IDs for brand attribution
+  },
+
+  // Legal & deployment (required before external pitch)
+  legal: {
+    termsUrl: null,           // link shown on menu (required for real-money modes)
+    privacyUrl: null,
+    ageGate: false,           // show 21+ confirmation before play
+    jurisdictionBlock: [],    // ISO 3166-1 alpha-2 codes to block (e.g. ['US-WA'])
+    disclaimerText: '',       // footer text (e.g. "No purchase necessary. Void where prohibited.")
+  },
+
+  deployment: {
+    embedMode: 'standalone',  // 'standalone' | 'iframe' | 'webview'
+    allowedOrigins: [],       // CORS origins for iframe embed
+    customDomain: null,       // e.g. 'games.acmecorp.com'
+    buildId: null,            // set at build time; used for cache busting
   },
 };
+
+// Validate a brand config at runtime
+export function validateBrandConfig(config) {
+  if (!config.schemaVersion || config.schemaVersion < BRAND_SCHEMA_VERSION) {
+    throw new Error(`brandConfig schemaVersion ${config.schemaVersion} is outdated. Expected ${BRAND_SCHEMA_VERSION}.`);
+  }
+  return true;
+}
 
 // Example: how to create a brand override
 // import { DEFAULT_BRAND } from './brandConfig.js';
@@ -55,4 +97,6 @@ export const DEFAULT_BRAND = {
 //   sponsor: 'Acme Corp',
 //   colors: { ...DEFAULT_BRAND.colors, primary: '#FF0000' },
 //   copy: { ...DEFAULT_BRAND.copy, prizeText: 'Win an Acme prize pack!' },
+//   analytics: { ...DEFAULT_BRAND.analytics, ga4MeasurementId: 'G-XXXXXXX' },
+//   legal: { ...DEFAULT_BRAND.legal, termsUrl: 'https://acme.com/terms', ageGate: true },
 // };
