@@ -133,6 +133,10 @@ export class PlayerController {
 
   freeze() { this._frozen = true; }
 
+  getPosition() {
+    return { x: this._x, y: this._y };
+  }
+
   getBounds() {
     return new Phaser.Geom.Rectangle(this._x - 14, this._y - 22, 28, 44);
   }

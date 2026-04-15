@@ -6,33 +6,44 @@ export const GAME_CONFIG = {
   targetFPS: 60,
 
   player: {
-    speed: 280,          // base forward speed (px/s)
-    maxSpeed: 520,       // speed cap
-    acceleration: 18,    // speed gain per second
-    steerSpeed: 260,     // lateral movement (px/s)
-    boostMultiplier: 1.6,
-    boostDuration: 1.2,  // seconds
-    crashSlowDuration: 1.0,
-    crashSpeedFactor: 0.4,
+    speed: 310,          // base forward speed (px/s) — snappier start
+    maxSpeed: 560,       // speed cap — feels fast without losing control
+    acceleration: 22,    // speed gain per second — reaches max ~midway through run
+    steerSpeed: 290,     // lateral movement (px/s) — responsive lane switching
+    boostMultiplier: 1.7,
+    boostDuration: 1.4,  // seconds — long enough to feel rewarding
+    crashSlowDuration: 0.8, // shorter recovery — less punishing, more fun
+    crashSpeedFactor: 0.35,
   },
 
   scoring: {
-    distancePerPixel: 0.08,
-    gateHit: 150,
-    gateStreak: 75,       // bonus per gate in streak (cumulative)
-    nearMiss: 200,        // passing within 30px of obstacle
-    nearMissWindow: 30,
-    driftCombo: 50,       // per second of sustained drift
-    boostPad: 100,
-    finishBonus: 500,     // awarded if player survives full run
+    distancePerPixel: 0.06,  // slightly lower — distance is passive, shouldn't dominate
+    gateHit: 175,
+    gateStreak: 100,         // bigger streak reward — incentivizes skill
+    nearMiss: 250,           // near misses are the highlight play
+    nearMissWindow: 34,
+    driftCombo: 60,          // per second of sustained drift
+    boostPad: 120,
+    finishBonus: 500,
   },
 
   track: {
-    scrollSpeed: 280,     // matches player base speed
+    scrollSpeed: 310,     // matches player base speed
     laneWidth: 80,
     lanes: 5,
-    obstacleSpawnRate: 1.4,   // obstacles per second
-    boostPadRate: 0.18,
-    gateSpawnRate: 0.5,
+    obstacleSpawnRate: 1.6,   // slightly denser — more near-miss opportunities
+    boostPadRate: 0.22,
+    gateSpawnRate: 0.55,
+  },
+
+  // M2: Visual juice config
+  fx: {
+    crashShakeIntensity: 0.018,
+    crashShakeDuration: 280,
+    nearMissFlashDuration: 200,
+    nearMissParticleCount: 8,
+    boostFlashDuration: 150,
+    scorePopupDuration: 1000,
+    scorePopupRise: 60,
   },
 };

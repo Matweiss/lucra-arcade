@@ -3,12 +3,13 @@ import { MenuScene } from './scenes/MenuScene.js';
 import { RaceScene } from './scenes/RaceScene.js';
 import { ResultScene } from './scenes/ResultScene.js';
 import { GAME_CONFIG } from './config/gameConfig.js';
+import { DEFAULT_BRAND } from './config/brandConfig.js';
 
 const config = {
   type: Phaser.AUTO,
   width: GAME_CONFIG.width,
   height: GAME_CONFIG.height,
-  backgroundColor: '#0a0a1a',
+  backgroundColor: DEFAULT_BRAND.colors.background,
   parent: 'game-container',
   scale: {
     mode: Phaser.Scale.FIT,

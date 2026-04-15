@@ -6,7 +6,7 @@
 
 export const BRAND_SCHEMA_VERSION = 1;
 
-export const DEFAULT_BRAND = {
+const LUCRA_BRAND = {
   schemaVersion: BRAND_SCHEMA_VERSION,
 
   // Identity
@@ -27,11 +27,11 @@ export const DEFAULT_BRAND = {
 
   // Assets — swap with brand logo PNGs
   assets: {
-    logo: null,              // path to logo image (shown on menu + result screen)
-    kartSkin: null,          // path to kart sprite (falls back to shape)
-    trackBanner: null,       // repeating side banner
-    boostIcon: null,         // pickup icon override
-    finishFlair: null,       // result screen background
+    logo: null,
+    kartSkin: null,
+    trackBanner: null,
+    boostIcon: null,
+    finishFlair: null,
   },
 
   // Copy
@@ -40,46 +40,122 @@ export const DEFAULT_BRAND = {
     practiceCTA: 'Practice',
     resultHeading: 'Race Complete!',
     resultShareCTA: 'Share Score',
-    sponsorMessage: '',      // e.g. "Presented by Acme Corp"
-    prizeText: '',           // e.g. "Top score wins $500"
+    sponsorMessage: '',
+    prizeText: '',
   },
 
   // Contest mode (hook for Lucra backend)
-  // Score submission uses event-log format — see ScoreSystem.getEventLog()
   contest: {
-    mode: 'free_play',       // 'free_play' | 'tournament' | 'skill_play' | 'practice'
+    mode: 'free_play',
     entryFee: 0,
     prizePool: 0,
     maxEntries: null,
-    submissionEndpoint: null, // POST receives: { sessionId, playerId, eventLog, finalScore, duration }
-    sessionSecret: null,      // set server-side; used to sign event log submissions
+    submissionEndpoint: null,
+    sessionSecret: null,
   },
 
-  // Analytics — brand tracking IDs (all optional)
+  // Analytics
   analytics: {
-    ga4MeasurementId: null,   // Google Analytics 4
-    gtmContainerId: null,     // Google Tag Manager
+    ga4MeasurementId: null,
+    gtmContainerId: null,
     mixpanelToken: null,
-    customEndpoint: null,     // POST { event, properties } for brand's own analytics
-    sessionIdPrefix: 'lucra', // prefixed to all session IDs for brand attribution
+    customEndpoint: null,
+    sessionIdPrefix: 'lucra',
   },
 
-  // Legal & deployment (required before external pitch)
+  // Legal & deployment
   legal: {
-    termsUrl: null,           // link shown on menu (required for real-money modes)
+    termsUrl: null,
     privacyUrl: null,
-    ageGate: false,           // show 21+ confirmation before play
-    jurisdictionBlock: [],    // ISO 3166-1 alpha-2 codes to block (e.g. ['US-WA'])
-    disclaimerText: '',       // footer text (e.g. "No purchase necessary. Void where prohibited.")
+    ageGate: false,
+    jurisdictionBlock: [],
+    disclaimerText: '',
   },
 
   deployment: {
-    embedMode: 'standalone',  // 'standalone' | 'iframe' | 'webview'
-    allowedOrigins: [],       // CORS origins for iframe embed
-    customDomain: null,       // e.g. 'games.acmecorp.com'
-    buildId: null,            // set at build time; used for cache busting
+    embedMode: 'standalone',
+    allowedOrigins: [],
+    customDomain: null,
+    buildId: null,
   },
 };
+
+// ============================================================
+// DEMO BRAND SKIN: DraftKings
+// ============================================================
+// Pitch demo — shows how a real sports/gaming brand would look.
+
+const DRAFTKINGS_BRAND = {
+  ...LUCRA_BRAND,
+  name: 'DK Turbo Sprint',
+  sponsor: 'DraftKings',
+  tagline: 'Race for the Crown.',
+
+  colors: {
+    primary: '#59C84B',      // DraftKings green
+    secondary: '#FFD700',    // gold accent
+    background: '#0B1120',   // deep navy/black
+    trackLine: '#1B2540',    // subtle navy lane dividers
+    text: '#FFFFFF',
+    textDim: '#7A8AAE',      // muted blue-gray
+    hudBg: 'rgba(11,17,32,0.7)',
+  },
+
+  assets: {
+    logo: null,              // would be DraftKings crown logo PNG
+    kartSkin: null,
+    trackBanner: null,
+    boostIcon: null,
+    finishFlair: null,
+  },
+
+  copy: {
+    menuCTA: 'Enter Race',
+    practiceCTA: 'Free Play',
+    resultHeading: 'Race Results',
+    resultShareCTA: 'Challenge a Friend',
+    sponsorMessage: 'Presented by DraftKings',
+    prizeText: 'Top score wins $1,000',
+  },
+
+  contest: {
+    mode: 'tournament',
+    entryFee: 5,
+    prizePool: 1000,
+    maxEntries: 500,
+    submissionEndpoint: null,
+    sessionSecret: null,
+  },
+
+  analytics: {
+    ...LUCRA_BRAND.analytics,
+    sessionIdPrefix: 'dk',
+  },
+
+  legal: {
+    termsUrl: 'https://draftkings.com/terms',
+    privacyUrl: 'https://draftkings.com/privacy',
+    ageGate: true,
+    jurisdictionBlock: [],
+    disclaimerText: 'No purchase necessary. Void where prohibited. Must be 21+.',
+  },
+
+  deployment: {
+    embedMode: 'webview',
+    allowedOrigins: ['https://draftkings.com', 'https://www.draftkings.com'],
+    customDomain: null,
+    buildId: null,
+  },
+};
+
+// ============================================================
+// BRAND SELECTOR — change this line to swap skins
+// ============================================================
+// Options: LUCRA_BRAND, DRAFTKINGS_BRAND
+const ACTIVE_BRAND = LUCRA_BRAND;
+
+export const DEFAULT_BRAND = ACTIVE_BRAND;
+export { LUCRA_BRAND, DRAFTKINGS_BRAND };
 
 // Validate a brand config at runtime
 export function validateBrandConfig(config) {
@@ -88,15 +164,3 @@ export function validateBrandConfig(config) {
   }
   return true;
 }
-
-// Example: how to create a brand override
-// import { DEFAULT_BRAND } from './brandConfig.js';
-// export const ACME_BRAND = {
-//   ...DEFAULT_BRAND,
-//   name: 'Acme Turbo Cup',
-//   sponsor: 'Acme Corp',
-//   colors: { ...DEFAULT_BRAND.colors, primary: '#FF0000' },
-//   copy: { ...DEFAULT_BRAND.copy, prizeText: 'Win an Acme prize pack!' },
-//   analytics: { ...DEFAULT_BRAND.analytics, ga4MeasurementId: 'G-XXXXXXX' },
-//   legal: { ...DEFAULT_BRAND.legal, termsUrl: 'https://acme.com/terms', ageGate: true },
-// };

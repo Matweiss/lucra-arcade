@@ -1,5 +1,5 @@
 # Lucra Arcade — Game Template Build Plan
-**Version:** 1.1 | **Status:** M1 complete — M2 next  
+**Version:** 1.2 | **Status:** M1–M3 complete — M4 next  
 **Starting game:** Kart Racing | **Next:** Golf, Pickleball
 
 ---
@@ -189,16 +189,24 @@ To create a branded version: `{ ...DEFAULT_BRAND, colors: { ...DEFAULT_BRAND.col
 - [x] `main.js` + `index.html` wiring all scenes
 - [x] **Playable in browser with no assets**
 
-### Milestone 2 — Feel tuning
-- [ ] Adjust speeds, spawn rates, scoring weights in `gameConfig.js`
-- [ ] Add screen shake, sound stubs, particle flash on near miss
-- [ ] Mobile touch controls validated
-- [ ] Score curve feels fair and competitive at 60s
+### Milestone 2 — Feel tuning ✅ Complete
+- [x] Tuned speeds (310→560 ramp), spawn rates (1.6 obs/s, 0.55 gates/s), scoring weights (near miss 250, gate streak 100)
+- [x] Screen shake on crash (configurable intensity/duration via `fx` config)
+- [x] Particle burst on near miss + gate streak + boost pickup
+- [x] Screen flash overlay on crash (red), near miss (orange), boost (yellow), race end (white)
+- [x] Score popups anchored to player position with scale animation + text stroke
+- [x] Timer pulse animation at 10s remaining
+- [x] Speed bar color shift at high speed
+- [x] All FX values tunable in `gameConfig.js` → `fx` block
+- [x] Mobile touch controls validated — boost button uses brand secondary color
 
-### Milestone 3 — Brand layer
-- [ ] `BrandingSystem.js` applies colors + assets at runtime
-- [ ] Build one demo branded skin (fake sponsor)
-- [ ] Brand intake checklist finalized (sales tool)
+### Milestone 3 — Brand layer ✅ Complete
+- [x] All scenes (Menu, Race, Result) read colors dynamically from brandConfig — no hardcoded hex
+- [x] DraftKings demo skin (`DRAFTKINGS_BRAND`) — green/gold palette, sports betting copy, legal disclaimer
+- [x] Brand selector pattern: `ACTIVE_BRAND` one-liner swap in brandConfig.js
+- [x] Menu shows tagline, sponsor message, prize text, legal footer from config
+- [x] Result scene shows sponsor message and legal footer
+- [x] Named exports: `LUCRA_BRAND`, `DRAFTKINGS_BRAND` for build tooling
 
 ### Milestone 4 — Contest wrappers
 - [ ] Mode selector on menu (free play / tournament / skill play / practice)
@@ -254,12 +262,12 @@ To create a branded version: `{ ...DEFAULT_BRAND, colors: { ...DEFAULT_BRAND.col
 
 ---
 
-## 10. Immediate Next Step — Milestone 2: Feel Tuning
+## 10. Immediate Next Step — Milestone 4: Contest Wrappers
 
-M1 is complete and playable. Next:
-1. Play-test the gray-box build — adjust `gameConfig.js` speeds, spawn rates, scoring weights
-2. Add screen shake on crash, particle flash on near miss
-3. Validate mobile touch feel — boost button ergonomics
-4. Score curve: confirm 60s run produces meaningful spread for tournaments
+M1–M3 are complete. The game feels good and the brand skin system is proven. Next:
+1. Mode selector on menu (free play / tournament / skill play / practice)
+2. Wire `ContestClient.submit(scoreSystem.getEventLog(sessionId))` in ResultScene
+3. Result screen shows mode-specific messaging (rank, prize text)
+4. Server-side event-log replay for anti-cheat verification (backend work)
 
-**Goal: feels fun before any art goes in.**
+**Goal: the game is submission-ready for real-money modes.**
